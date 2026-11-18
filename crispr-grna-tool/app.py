@@ -1,41 +1,44 @@
-from flask import Flask, render_template, request
 
-app = Flask(__name__)
+import streamlit as st
+from Bio.Seq import Seq
 
+st.title("CRISPR gRNA Design Tool")
+
+st.write("Enter a DNA sequence to find possible gRNA candidates.")
 
 def find_grnas(sequence):
-    sequence = sequence.upper().replace(" ", "").replace("\n", "")
+    sequence = str(Seq(sequence.upper().replace(" ", "")))
     results = []
 
-    for i in range(len(sequence) - 22):
-        guide = sequence[i:i + 20]
-        pam_seq = sequence[i + 20:i + 23]
+    for i in range(len(sequence) - 2):
+        pam = sequence[i:i+3]
 
-        if pam_seq[1:] == "GG":
+        if pam[1:] == "GG" and i >= 20:
+            guide = sequence[i-20:i]
+
             results.append({
-                "position": i + 1,
-                "guide": guide,
-                "pam": pam_seq
+                "gRNA": guide,
+                "PAM": pam,
+                "Position": i + 1
             })
 
     return results
 
+dna = st.text_area("Enter DNA sequence:")
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    results = []
-    sequence = ""
+if st.button("Find gRNAs"):
+    if dna:
+        results = find_grnas(dna)
 
-    if request.method == "POST":
-        sequence = request.form.get("sequence", "")
-        results = find_grnas(sequence)
+        if results:
+            st.success("Possible gRNA candidates found!")
 
-    return render_template(
-        "index.html",
-        results=results,
-        sequence=sequence
-    )
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+            for number, result in enumerate(results, 1):
+                st.subheader(f"Candidate {number}")
+                st.write("gRNA:", result["gRNA"])
+                st.write("PAM:", result["PAM"])
+                st.write("Position:", result["Position"])
+        else:
+            st.warning("No suitable NGG PAM sites found.")
+    else:
+        st.warning("Please enter a DNA sequence.")
