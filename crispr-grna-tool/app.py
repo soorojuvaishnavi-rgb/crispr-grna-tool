@@ -117,11 +117,11 @@ tr:nth-child(even) {
 """, unsafe_allow_html=True)
 
 
-# gRNA identification function
+
 def find_grnas(dna_sequence):
     sequence = dna_sequence.upper().replace(" ", "").replace("\n", "")
 
-    # Check DNA characters
+    
     if not sequence:
         return []
 
@@ -131,7 +131,7 @@ def find_grnas(dna_sequence):
     sequence = str(Seq(sequence))
     results = []
 
-    # Search for NGG PAM sites
+
     for i in range(len(sequence) - 2):
         pam = sequence[i:i+3]
 
